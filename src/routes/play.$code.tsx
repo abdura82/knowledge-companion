@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { useGameState, useCountdown, useLeadIn } from "@/hooks/useGameState";
+import { useGameState, useLeadIn } from "@/hooks/useGameState";
 import { heartbeat, joinRoom, submitAnswer } from "@/lib/game.functions";
 
 export const Route = createFileRoute("/play/$code")({
@@ -111,10 +111,8 @@ function GameView({ code, playerId }: { code: string; playerId: string }) {
   }, [ping, playerId]);
 
   const q = data?.question ?? null;
-  const remaining = useCountdown(q?.startedAt, q?.timeLimit ?? 20, data?.status === "PLAYING");
   const leadIn = useLeadIn(q?.startedAt);
   const me = data?.players.find((p) => p.id === playerId);
-  const timeUp = remaining <= 0;
 
   if (isError)
     return (
@@ -190,9 +188,9 @@ function GameView({ code, playerId }: { code: string; playerId: string }) {
         <div className={`rounded-full ${teamColor} px-4 py-1.5 text-sm font-bold text-panel`}>
           {teamLabel}
         </div>
-        <div className="text-2xl font-extrabold tabular-nums text-foreground">
-          {data.status === "PAUSED" ? "II" : remaining}
-        </div>
+        {data.status === "PAUSED" && (
+          <div className="text-sm font-bold text-muted-foreground">DURAKLATILDI</div>
+        )}
       </div>
 
       {q && (
@@ -208,7 +206,7 @@ function GameView({ code, playerId }: { code: string; playerId: string }) {
               return (
                 <button
                   key={letter}
-                  disabled={!!data.me || timeUp || data.status !== "PLAYING" || !!sending}
+                  disabled={!!data.me || data.status !== "PLAYING" || !!sending}
                   onClick={async () => {
                     setSending(letter);
                     setError(null);
@@ -241,9 +239,6 @@ function GameView({ code, playerId }: { code: string; playerId: string }) {
                 {data.me.isCorrect ? "DOĞRU! 🎉" : "YANLIŞ"}
               </p>
             </div>
-          )}
-          {!data.me && timeUp && (
-            <p className="mt-5 text-center text-sm font-bold text-destructive">Süre doldu</p>
           )}
           {error && (
             <p className="mt-4 text-center text-sm font-semibold text-destructive">{error}</p>

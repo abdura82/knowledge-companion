@@ -53,3 +53,24 @@ export function useCountdown(startedAt: string | null | undefined, timeLimit = 2
 
   return remaining;
 }
+
+/** Seconds left before a question actually starts (3-2-1 lead-in). 0 = already started. */
+export function useLeadIn(startedAt: string | null | undefined) {
+  const [lead, setLead] = useState(0);
+
+  useEffect(() => {
+    if (!startedAt) {
+      setLead(0);
+      return;
+    }
+    const tick = () => {
+      const diff = (new Date(startedAt).getTime() - Date.now()) / 1000;
+      setLead(diff > 0 ? Math.ceil(diff) : 0);
+    };
+    tick();
+    const id = setInterval(tick, 200);
+    return () => clearInterval(id);
+  }, [startedAt]);
+
+  return lead;
+}

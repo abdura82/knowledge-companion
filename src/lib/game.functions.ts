@@ -214,6 +214,8 @@ export const submitAnswer = createServerFn({ method: "POST" })
     if (!q) throw new Error("Soru bulunamadı");
 
     if (room.question_started_at) {
+      if (new Date(room.question_started_at).getTime() > Date.now())
+        throw new Error("Soru henüz başlamadı");
       const elapsed = (Date.now() - new Date(room.question_started_at).getTime()) / 1000;
       if (elapsed > q.time_limit + 1) throw new Error("Süre doldu");
     }
@@ -277,7 +279,7 @@ export const controlRoom = createServerFn({ method: "POST" })
           rope_position: 0,
           winner: null,
           reveal: false,
-          question_started_at: new Date().toISOString(),
+          question_started_at: new Date(Date.now() + 3200).toISOString(),
         })
         .eq("id", room.id);
       await supabase.from("answers").delete().eq("room_id", room.id);
@@ -298,7 +300,7 @@ export const controlRoom = createServerFn({ method: "POST" })
           current_question: nextIndex,
           reveal: false,
           status: "PLAYING",
-          question_started_at: new Date().toISOString(),
+          question_started_at: new Date(Date.now() + 1500).toISOString(),
         })
         .eq("id", room.id);
       return { ok: true };

@@ -26,7 +26,7 @@ export function TugOfWarArena({ ropePosition, pulse }: Props) {
   return (
     <div className="@container relative w-full select-none overflow-hidden">
       {/* Dikey kesikli orta çizgi */}
-      <div className="pointer-events-none absolute inset-y-0 left-1/2 flex -translate-x-1/2 justify-center">
+      <div className="pointer-events-none absolute -top-12 bottom-0 left-1/2 flex -translate-x-1/2 justify-center">
         <div className="h-full w-0 border-l-[3px] border-dashed border-foreground/20" />
       </div>
 
@@ -60,7 +60,7 @@ export function TugOfWarArena({ ropePosition, pulse }: Props) {
           >
             <div className="absolute left-1/2 -translate-x-1/2">
               <div className="relative h-2 w-2 rounded-full bg-foreground/80">
-                <div className="absolute -top-14 left-1/2 h-14 w-[2px] bg-foreground/80" />
+                <div className="absolute -top-8 left-1/2 h-8 w-[2px] bg-foreground/80" />
                 <div className="absolute -top-8 left-1/2 h-5 w-8 bg-flag [clip-path:polygon(0_0,100%_28%,0_58%)]" />
               </div>
             </div>

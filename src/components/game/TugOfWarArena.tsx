@@ -1,5 +1,5 @@
-import teamPullWhite from "@/assets/team-pull-white.png";
-import teamPull from "@/assets/team-pull.png";
+import teamPullWhite from "@/assets/team-pull-white-clean.png";
+import teamPull from "@/assets/team-pull-clean.png";
 
 type Props = {
   /** -100 (Takım 1 kazandı) .. 0 (merkez) .. +100 (Takım 2 kazandı) */
@@ -7,7 +7,7 @@ type Props = {
   pulse?: 1 | 2 | null;
 };
 
-/** Halat dokusu: bükülmüş ip görünümü — her yerde aynı renk ve aynı kalınlık. */
+/** Tek halat dokusu: baştan sona aynı renk ve aynı kalınlık. */
 const ROPE_STYLE: React.CSSProperties = {
   backgroundColor: "#d9b382",
   backgroundImage:
@@ -33,7 +33,7 @@ export function TugOfWarArena({ ropePosition, pulse }: Props) {
             style={{ transform: `translateX(${shift}%)` }}
           >
             <div
-              className="absolute left-1/2 h-[4px] w-[300%] -translate-x-1/2"
+              className="absolute left-1/2 h-[clamp(6px,0.7vw,10px)] w-[300%] -translate-x-1/2"
               style={ROPE_STYLE}
             />
           </div>

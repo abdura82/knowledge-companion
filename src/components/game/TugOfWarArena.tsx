@@ -26,7 +26,7 @@ export function TugOfWarArena({ ropePosition, pulse }: Props) {
   return (
     <div className="@container relative w-full select-none overflow-hidden">
       {/* Dikey kesikli orta çizgi */}
-      <div className="pointer-events-none absolute -top-12 bottom-0 left-1/2 flex -translate-x-1/2 justify-center">
+      <div className="pointer-events-none absolute -top-32 bottom-0 left-1/2 flex -translate-x-1/2 justify-center">
         <div className="h-full w-0 border-l-[3px] border-dashed border-foreground/20" />
       </div>
 

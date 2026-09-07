@@ -188,12 +188,6 @@ function HostScreen() {
           <div className="flex flex-wrap gap-4 text-sm font-semibold text-foreground">
             <StatusChip label="TAKIM 1" player={team1} />
             <StatusChip label="TAKIM 2" player={team2} />
-            <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-              HALAT: {data.ropePosition}
-            </span>
-            <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-              DURUM: {data.status}
-            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {waiting && lobbyOpen && (

@@ -141,16 +141,6 @@ function HostScreen() {
             </section>
           ) : data.status === "FINISHED" ? (
             <section className="py-10 text-center">
-              <h1 className="text-5xl font-extrabold text-foreground sm:text-6xl">
-                {data.winner === "TIE"
-                  ? "BERABERE!"
-                  : `🏆 TAKIM ${data.winner === "TEAM1" ? "1" : "2"} KAZANDI!`}
-              </h1>
-              <p className="mt-4 text-sm font-semibold tracking-[0.25em] text-muted-foreground">
-                {Math.abs(data.ropePosition) >= 100
-                  ? "HALAT TAMAMEN ÇEKİLDİ"
-                  : `${q?.total ?? 10} SORU TAMAMLANDI`}
-              </p>
               <div className="mt-10">
                 <TugOfWarArena ropePosition={data.ropePosition} />
               </div>

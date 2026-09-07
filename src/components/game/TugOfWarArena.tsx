@@ -60,7 +60,7 @@ export function TugOfWarArena({ ropePosition, pulse }: Props) {
           >
             <div className="absolute left-1/2 -translate-x-1/2">
               <div className="relative h-2 w-2 rounded-full bg-foreground/80">
-                <div className="absolute -top-8 left-1/2 h-8 w-[2px] bg-foreground/80" />
+                <div className="absolute -top-14 left-1/2 h-14 w-[2px] bg-foreground/80" />
                 <div className="absolute -top-8 left-1/2 h-5 w-8 bg-flag [clip-path:polygon(0_0,100%_28%,0_58%)]" />
               </div>
             </div>

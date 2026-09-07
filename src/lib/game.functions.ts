@@ -13,7 +13,6 @@ export type PublicQuestion = {
   options: { A: string; B: string; C: string; D: string };
   category: string;
   difficulty: string;
-  timeLimit: number;
   startedAt: string | null;
 };
 
@@ -33,6 +32,8 @@ export type RoomState = {
   players: PublicPlayer[];
   question: PublicQuestion | null;
   me: { answer: string; isCorrect: boolean } | null;
+  /** Bu soru çözüldü mü (doğru cevap verildi ya da herkes cevapladı) */
+  resolved: boolean;
 };
 
 async function db() {
@@ -137,11 +138,12 @@ export const getRoomState = createServerFn({ method: "POST" })
     let question: PublicQuestion | null = null;
     let answeredIds: string[] = [];
     let me: RoomState["me"] = null;
+    let resolved = false;
 
     if (currentId && room.status !== "WAITING" && room.status !== "READY") {
       const { data: q } = await supabase
         .from("questions")
-        .select("question, option_a, option_b, option_c, option_d, category, difficulty, time_limit")
+        .select("question, option_a, option_b, option_c, option_d, category, difficulty")
         .eq("id", currentId)
         .maybeSingle();
       if (q) {
@@ -152,7 +154,6 @@ export const getRoomState = createServerFn({ method: "POST" })
           options: { A: q.option_a, B: q.option_b, C: q.option_c, D: q.option_d },
           category: q.category,
           difficulty: q.difficulty,
-          timeLimit: q.time_limit,
           startedAt: room.question_started_at,
         };
       }
@@ -162,6 +163,10 @@ export const getRoomState = createServerFn({ method: "POST" })
         .eq("room_id", room.id)
         .eq("question_id", currentId);
       answeredIds = (answers ?? []).map((a) => a.player_id);
+      const playerCount = (players ?? []).length;
+      resolved =
+        (answers ?? []).some((a) => a.is_correct) ||
+        (playerCount > 0 && answeredIds.length >= playerCount);
       const mine = (answers ?? []).find((a) => a.player_id === data.playerId);
       if (mine) me = { answer: mine.answer, isCorrect: mine.is_correct };
     }
@@ -180,6 +185,7 @@ export const getRoomState = createServerFn({ method: "POST" })
       })),
       question,
       me,
+      resolved,
     };
   });
 
@@ -208,17 +214,13 @@ export const submitAnswer = createServerFn({ method: "POST" })
 
     const { data: q } = await supabase
       .from("questions")
-      .select("correct_answer, time_limit")
+      .select("correct_answer")
       .eq("id", currentId)
       .maybeSingle();
     if (!q) throw new Error("Soru bulunamadı");
 
-    if (room.question_started_at) {
-      if (new Date(room.question_started_at).getTime() > Date.now())
-        throw new Error("Soru henüz başlamadı");
-      const elapsed = (Date.now() - new Date(room.question_started_at).getTime()) / 1000;
-      if (elapsed > q.time_limit + 1) throw new Error("Süre doldu");
-    }
+    if (room.question_started_at && new Date(room.question_started_at).getTime() > Date.now())
+      throw new Error("Soru henüz başlamadı");
 
     const { data: existing } = await supabase
       .from("answers")

@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { TugOfWarArena } from "@/components/game/TugOfWarArena";
-import { useCountdown, useGameState, useLeadIn } from "@/hooks/useGameState";
+import { useGameState, useLeadIn } from "@/hooks/useGameState";
 import { controlRoom, createRoom } from "@/lib/game.functions";
 
 export const Route = createFileRoute("/host/$code")({
@@ -36,17 +36,18 @@ function HostScreen() {
 
   const q = data?.question ?? null;
   const leadIn = useLeadIn(q?.startedAt);
-  const remaining = useCountdown(q?.startedAt, q?.timeLimit ?? 20, data?.status === "PLAYING");
   const status = data?.status;
+  const resolved = data?.resolved ?? false;
+  const qIndex = q?.index ?? 0;
 
-  // Soru süresi bittiğinde otomatik olarak sıradaki soruya geç
+  // Soru cevaplandığında (doğru cevap ya da herkes cevapladı) sıradaki soruya geç
   useEffect(() => {
-    if (status !== "PLAYING" || leadIn > 0 || remaining > 0) return undefined;
+    if (status !== "PLAYING" || leadIn > 0 || !resolved) return undefined;
     const id = setTimeout(() => {
       void control({ data: { code, action: "next" } }).then(() => refetch());
-    }, 2000);
+    }, 2200);
     return () => clearTimeout(id);
-  }, [status, remaining, leadIn, code, control, refetch]);
+  }, [status, resolved, leadIn, qIndex, code, control, refetch]);
 
   useEffect(() => {
     if (!data) return;
@@ -172,12 +173,9 @@ function HostScreen() {
                     <p className="text-sm font-semibold tracking-[0.3em] text-muted-foreground sm:text-base">
                       SORU {q?.index ?? 1} / {q?.total ?? 10}
                     </p>
-                    <p className="mt-3 text-7xl font-extrabold tabular-nums text-foreground">
-                      {data.status === "PAUSED" ? "II" : remaining}
-                    </p>
-                    <p className="mt-3 text-sm font-semibold text-muted-foreground">
-                      Sorular telefonlarda. Doğru cevabı ilk bulan takım halatı kendine çeker!
-                    </p>
+                    {data.status === "PAUSED" && (
+                      <p className="mt-3 text-3xl font-extrabold text-foreground">DURAKLATILDI</p>
+                    )}
                   </>
                 )}
               </div>

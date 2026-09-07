@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { useGameState, useCountdown } from "@/hooks/useGameState";
+import { useGameState, useCountdown, useLeadIn } from "@/hooks/useGameState";
 import { heartbeat, joinRoom, submitAnswer } from "@/lib/game.functions";
 
 export const Route = createFileRoute("/play/$code")({
@@ -112,6 +112,7 @@ function GameView({ code, playerId }: { code: string; playerId: string }) {
 
   const q = data?.question ?? null;
   const remaining = useCountdown(q?.startedAt, q?.timeLimit ?? 20, data?.status === "PLAYING");
+  const leadIn = useLeadIn(q?.startedAt);
   const me = data?.players.find((p) => p.id === playerId);
   const timeUp = remaining <= 0;
 
@@ -159,6 +160,25 @@ function GameView({ code, playerId }: { code: string; playerId: string }) {
         </p>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           Öğretmen oyunu başlattığında sorular burada görünecek.
+        </p>
+      </Shell>
+    );
+  }
+
+  if (leadIn > 0) {
+    return (
+      <Shell>
+        <div className={`rounded-2xl ${teamColor} px-4 py-2 text-center font-bold text-panel`}>
+          {teamLabel}
+        </div>
+        <p className="mt-8 text-center text-xs font-semibold tracking-[0.3em] text-muted-foreground">
+          HAZIR OL
+        </p>
+        <p className="mt-2 text-center text-8xl font-extrabold tabular-nums text-foreground">
+          {leadIn}
+        </p>
+        <p className="mt-8 text-center text-sm font-semibold text-muted-foreground">
+          Soru birazdan ekranına gelecek.
         </p>
       </Shell>
     );

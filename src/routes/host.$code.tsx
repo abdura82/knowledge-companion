@@ -41,7 +41,7 @@ function HostScreen() {
 
   // Soru süresi bittiğinde otomatik olarak sıradaki soruya geç
   useEffect(() => {
-    if (status !== "PLAYING" || leadIn > 0 || remaining > 0) return;
+    if (status !== "PLAYING" || leadIn > 0 || remaining > 0) return undefined;
     const id = setTimeout(() => {
       void control({ data: { code, action: "next" } }).then(() => refetch());
     }, 2000);

@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { TugOfWarArena } from "@/components/game/TugOfWarArena";
-import { useCountdown, useGameState } from "@/hooks/useGameState";
+import { useCountdown, useGameState, useLeadIn } from "@/hooks/useGameState";
 import { controlRoom, createRoom } from "@/lib/game.functions";
 
 export const Route = createFileRoute("/host/$code")({
@@ -35,7 +35,18 @@ function HostScreen() {
   const prevPos = useRef(0);
 
   const q = data?.question ?? null;
+  const leadIn = useLeadIn(q?.startedAt);
   const remaining = useCountdown(q?.startedAt, q?.timeLimit ?? 20, data?.status === "PLAYING");
+  const status = data?.status;
+
+  // Soru süresi bittiğinde otomatik olarak sıradaki soruya geç
+  useEffect(() => {
+    if (status !== "PLAYING" || leadIn > 0 || remaining > 0) return;
+    const id = setTimeout(() => {
+      void control({ data: { code, action: "next" } }).then(() => refetch());
+    }, 2000);
+    return () => clearTimeout(id);
+  }, [status, remaining, leadIn, code, control, refetch]);
 
   useEffect(() => {
     if (!data) return;
@@ -146,32 +157,29 @@ function HostScreen() {
           ) : (
             <section>
               <TugOfWarArena ropePosition={data.ropePosition} pulse={pulse} />
-              <div className="mt-8 text-center">
-                <p className="text-sm font-semibold tracking-[0.3em] text-muted-foreground sm:text-base">
-                  SORU {q?.index ?? 1} / {q?.total ?? 10} • {(q?.category ?? "").toUpperCase()}
-                </p>
-                <h1 className="mx-auto mt-3 max-w-4xl text-3xl font-extrabold leading-tight text-foreground sm:text-5xl">
-                  {q?.question}
-                </h1>
-                <div className="mx-auto mt-6 grid max-w-4xl gap-3 sm:grid-cols-2">
-                  {(["A", "B", "C", "D"] as const).map((l) => (
-                    <div
-                      key={l}
-                      className="flex items-center gap-3 rounded-2xl border-2 border-border px-4 py-3 text-left text-lg font-semibold text-foreground"
-                    >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-muted text-sm font-extrabold">
-                        {l}
-                      </span>
-                      {q?.options[l]}
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-6 text-5xl font-extrabold tabular-nums text-foreground">
-                  {data.status === "PAUSED" ? "DURAKLATILDI" : remaining}
-                </p>
-                <p className="mt-2 text-sm font-semibold text-muted-foreground">
-                  Doğru cevabı ilk bulan takım halatı kendine çeker!
-                </p>
+              <div className="mt-10 text-center">
+                {leadIn > 0 ? (
+                  <>
+                    <p className="text-sm font-semibold tracking-[0.3em] text-muted-foreground">
+                      HAZIR OL
+                    </p>
+                    <p className="mt-2 text-[7rem] font-extrabold leading-none tabular-nums text-foreground">
+                      {leadIn}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold tracking-[0.3em] text-muted-foreground sm:text-base">
+                      SORU {q?.index ?? 1} / {q?.total ?? 10}
+                    </p>
+                    <p className="mt-3 text-7xl font-extrabold tabular-nums text-foreground">
+                      {data.status === "PAUSED" ? "II" : remaining}
+                    </p>
+                    <p className="mt-3 text-sm font-semibold text-muted-foreground">
+                      Sorular telefonlarda. Doğru cevabı ilk bulan takım halatı kendine çeker!
+                    </p>
+                  </>
+                )}
               </div>
             </section>
           )}
@@ -192,24 +200,20 @@ function HostScreen() {
           <div className="flex flex-wrap gap-2">
             {waiting && lobbyOpen && (
               <Ctrl onClick={() => act("start")} primary>
-                OYUNU BAŞLAT
+                BAŞLAT
               </Ctrl>
             )}
-            {data.status === "PLAYING" && <Ctrl onClick={() => act("next")}>SONRAKİ SORU</Ctrl>}
             {data.status === "PLAYING" && <Ctrl onClick={() => act("pause")}>DURAKLAT</Ctrl>}
-            {data.status === "PAUSED" && <Ctrl onClick={() => act("resume")}>DEVAM ET</Ctrl>}
-            {!waiting && <Ctrl onClick={() => act("restart")}>YENİDEN BAŞLAT</Ctrl>}
-            {data.status !== "FINISHED" && !waiting && (
-              <Ctrl onClick={() => act("finish")}>OYUNU BİTİR</Ctrl>
+            {data.status === "PAUSED" && (
+              <Ctrl onClick={() => act("resume")} primary>
+                DEVAM ET
+              </Ctrl>
             )}
-            <Ctrl
-              onClick={async () => {
-                const res = await create();
-                void navigate({ to: "/host/$code", params: { code: res.code } });
-              }}
-            >
-              YENİ YARIŞMA
-            </Ctrl>
+            {data.status === "FINISHED" && (
+              <Ctrl onClick={() => act("restart")} primary>
+                BAŞLAT
+              </Ctrl>
+            )}
           </div>
         </div>
       </div>
